@@ -8,7 +8,7 @@ $box = "opensuse/Leap-15.6.x86_64"
 def detect_runtime
   # example: v1.24.5-rc4+rke2r1
   # groups: [v1.24.5-rc4+rke2r1, 1.24.5, rc4, rke2, r1]
-  m = $settings['kubernetes_version'].match(/^v(1.2[3-9].\d+)-?(.*)\+(k3s|rke2)(r?\d)/)
+  m = $settings['kubernetes_version'].match(/^v(1.3[2-5].\d+)-?(.*)\+(k3s|rke2)(r?\d)/)
   if m.nil?
     puts "Unsupported Kubernetes runtime #{$settings['kubernetes_version']}"
     exit(1)
