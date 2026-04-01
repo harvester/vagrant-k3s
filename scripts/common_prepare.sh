@@ -17,17 +17,3 @@ echo 1024 > /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
 modprobe vfio_pci
 modprobe uio_pci_generic
 modprobe nvme_tcp
-#
-
-exit 0
-
-# leave the code for backup, we can use the kubectl shipped with k3s
-if [ -n "$provision_kubernetes_version" ]; then
-  kubectl_version=${provision_kubernetes_version%%+k3s*}
-  echo "Install kubectl $kubectl_version from upstream..."
-  curl -sfL https://dl.k8s.io/release/${kubectl_version}/bin/linux/amd64/kubectl > /usr/bin/kubectl && chmod +x /usr/bin/kubectl
-else
-  echo "Install kubectl from os repo..."
-  zypper in -y kubernetes-client
-fi
-
