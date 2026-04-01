@@ -36,7 +36,7 @@ $settings.each { |key, value|
 Vagrant.configure("2") do |config|
   config.vm.box = $box
   # config.vm.box_version = ""
-  config.vm.synced_folder ".", "/vagrant", disabled: true
+  config.vm.synced_folder "./scripts", "/vagrant", disabled: false 
 
   (1..$settings['cluster_size']).each do |i|
     config.vm.define "node#{i}" do |node|
