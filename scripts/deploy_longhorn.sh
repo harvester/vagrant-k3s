@@ -2,6 +2,20 @@
 
 TOP_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd )"
 
+WORK_DIR="$TOP_DIR/workdir"
+ARCH=$(uname -m)
+if [[ $ARCH == "x86_64" ]]; then
+  ARCH=amd64
+elif [[ $ARCH == "aarch64" ]]; then
+  ARCH=arm64
+else
+  echo "Unsupported architecture: $ARCH"
+  exit 1
+fi
+
+# global variables
+HELM=""
+
 ensure_command() {
   local cmd=$1
   if ! which $cmd &> /dev/null; then
@@ -9,6 +23,31 @@ ensure_command() {
     return
   fi
   echo 0
+}
+
+ensure_helm() {
+  HELM_VERSION=v3.20.0
+  HELM_SUM_amd64=dbb4c8fc8e19d159d1a63dda8db655f9ffa4aac1b9a6b188b34a40957119b286
+  HELM_SUM_arm64=bfb14953295d5324d47ab55f3dfba6da28d46c848978c8fbf412d4271bdc29f1
+  HELM_SUM="HELM_SUM_${ARCH}"
+
+  if [[ $(ensure_command helm) -eq 1 ]]; then
+    echo "no helm, try to curl..."
+    readonly helm_dir="${WORK_DIR}/.helm"
+
+    mkdir -p $helm_dir
+    pushd "$helm_dir" > /dev/null
+    curl -O https://get.helm.sh/helm-${HELM_VERSION}-linux-${ARCH}.tar.gz 
+    echo "${!HELM_SUM}" helm-${HELM_VERSION}-linux-${ARCH}.tar.gz | sha256sum -c -
+    tar xvzf helm-${HELM_VERSION}-linux-${ARCH}.tar.gz --strip-components=1
+    HELM="${helm_dir}/helm"
+    $HELM version
+    popd > /dev/null
+  else
+    echo "Get helm, version info as below"
+    HELM=$(which helm)
+    $HELM version
+  fi
 }
 
 wait_longhorn_ready() {
@@ -73,28 +112,17 @@ if [ ! -f $TOP_DIR/kubeconfig ]; then
 fi
 export KUBECONFIG=$TOP_DIR/kubeconfig
 
-if [[ $(ensure_command helm) -eq 1 ]]; then
-  echo "no helm, try to curl..."
-  curl -O https://get.helm.sh/helm-v3.9.4-linux-amd64.tar.gz
-  tar -zxvf helm-v3.9.4-linux-amd64.tar.gz
-  HELM=$TOP_DIR/linux-amd64/helm
-  $HELM version
-else
-  echo "Get helm, version info as below"
-  HELM=$(which helm)
-  $HELM version
-fi
+ensure_helm
 
 longhorn_version=$(yq -e e '.longhorn_version' $TOP_DIR/settings.yaml)
 echo Target Longhorn version: $longhorn_version
 cluster_nodes=$(yq -e e '.cluster_size' $TOP_DIR/settings.yaml)
 echo "cluster nodes: $cluster_nodes"
 
-pushd $TOP_DIR
+mkdir -p $WORK_DIR
+pushd $WORK_DIR > /dev/null
 # cleanup first
 rm -rf longhorn
-# create target folder
-mkdir longhorn
 
 # pull longhorn
 $HELM pull longhorn --repo https://charts.longhorn.io --version ${longhorn_version} --untar
@@ -104,4 +132,4 @@ $HELM install longhorn ./longhorn --create-namespace -n longhorn-system
 wait_longhorn_ready
 kubectl get pods -n longhorn-system
 echo "longhorn is ready"
-popd
+popd > /dev/null
