@@ -1,10 +1,10 @@
 kubernetes_version: v1.35.2+k3s1
 k3s_binary_checksum: 3ae8e35a62ac83e8e197c117858a564134057a7b8703cf73e67ce60d19f4a22b
+k3s_install_checksum: 8598e002e61d658fed7b7542fc6d2c66d8da6eae69e088830105d2ee1ffb6d91
 token: sometoken
 cluster_size: 3
-net_install: true
 
-server_ip: 192.168.121.124
+server_ip: 192.168.121.78
 
 longhorn_version: 1.7.1
 

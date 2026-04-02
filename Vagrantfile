@@ -16,11 +16,6 @@ def detect_runtime
 
   $runtime_type = m[3]
 
-  if $settings['net_install'] == false
-    $box = "bk201z/#{$runtime_type}-#{m[1]}"
-    # TODO: check box exists
-  end
-
   File.open(File.join($root_dir, "runtime"), "w") { |f| f.write $runtime_type }
 end
 
