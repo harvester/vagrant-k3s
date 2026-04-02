@@ -3,10 +3,6 @@
 [ "$provision_debug" = "true" ] && set -x
 
 # anything common to all nodes
-if [ "$provision_net_install" = "false" ]; then
-  exit 0
-fi
-
 zypper rr -a && zypper ar  https://download.opensuse.org/update/leap/15.6/oss/ update && zypper ar https://download.opensuse.org/distribution/leap/15.6/repo/oss/ oss
 zypper ref
 zypper in -y apparmor-parser iptables k9s wget open-iscsi
